@@ -1,0 +1,91 @@
+pipeline {
+  agent any
+  environment {
+    GITHUB_TOKEN=credentials('github-token')
+    IMAGE_NAME='manish8757/k8s'
+    COSIGN_PASSWORD=credentials('cosign-password')
+    COSIGN_PRIVATE_KEY=credentials('cosign-private-key')
+  }
+  stages {
+    stage('cleanup') {
+      steps {
+        sh 'docker system prune -a --volumes --force'
+      }
+    }
+    stages {
+    stage('cleanup') {
+      steps {
+        sh 'mvn  clean package -Dmaven.test.skip=true'
+      }
+    }    
+    stage('build image') {
+      steps {
+        sh 'docker build -t $IMAGE_NAME:recover${GIT_COMMIT} .'
+      }
+    }
+    stage('login to docker hub') {
+      steps {
+        sh 'echo "$GITHUB_TOKEN_PSW" | docker login ghcr.io -u $GITHUB_TOKEN_USR --password-stdin'
+      }
+    }
+    stage('docker-scanning') {
+      steps {
+        sh 'docker scan --login --token 51025e1f-c211-4a82-80b2-8069e5d03d62 && docker scan $IMAGE_NAME:recover${GIT_COMMIT} >> image_scan.json && aws s3 cp simage_can.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/DockerScan/image_scan.json'
+      }
+    }
+    // stage('tag image') {
+    //   steps {
+    //     sh 'docker tag $IMAGE_NAME:$IMAGE_VERSION ghcr.io/$IMAGE_NAME:$IMAGE_VERSION'
+    //   }
+    // }
+    stage('push image') {
+      steps {
+        sh 'docker push $IMAGE_NAME:recover${GIT_COMMIT}'
+      }
+    }
+    stage('installing terrascan') {
+      steps {
+        sh '$ curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
+&& tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz && sudo install terrascan /usr/local/bin && rm terrascan && terrascan '
+      }
+    }
+    stage('infra scan') {
+      steps {
+        sh 'docker run -it --rm -e SCAN=cis_1.5_aws -e OUTPUT=json -e FILE_NAME=aws-infra -e AWS_ACCESS_KEY_ID=AKIAXSWK5TOQGH2NYZVO -e AWS_SECRET_ACCESS_KEY=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 -e S3_BUCKET=prowler-demo-reports --name prowler prowler:v7 '
+      }
+    }
+    // stage('sign the container image') {
+    //   steps {
+    //     sh 'cosign version'
+    //     sh 'cosign sign --key $COSIGN_PRIVATE_KEY ghcr.io/$IMAGE_NAME:$IMAGE_VERSION'
+    //   }
+    // }
+  stage('Git Push'){
+        steps{
+        script{
+            GIT_CREDS = credentials('manish-git-cred')
+            sh '''
+                echo ${GIT_PREVIOUS_SUCCESSFUL_COMMIT}
+                git clone git@github.com/manish7992/test-recovery.git
+                cd test-recovery/recoveryplus
+                cat values.yaml
+                git pull 
+                sed -i " s%manish8757/rancher:${GIT_PREVIOUS_SUCCESSFUL_COMMIT}%manish8757/rancher:${GIT_COMMIT}%g" deployment.yaml
+                terrascan scan -i helm recoveryplus -o json >> helm-chart.json
+                aws s3 cp helm-chart.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/Terrascan/helm-chart.json
+                rm helm-chart.json
+                git add deployment.yaml
+                git commit -m  "This is manish8757/rancher"
+                git push 
+            '''
+             }
+          }
+        }
+        
+  }
+  post {
+    always {
+      sh 'docker logout'
+    }
+  }
+}
