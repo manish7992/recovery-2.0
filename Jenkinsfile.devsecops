@@ -5,8 +5,8 @@ pipeline {
     IMAGE_NAME='manish8757/k8s'
     COSIGN_PASSWORD=credentials('cosign-password')
     COSIGN_PRIVATE_KEY=credentials('cosign-private-key')
-    S3_BUCKET=prowler-demo-reports
-    ENV=dev
+    S3_BUCKET='prowler-demo-reports'
+    ENV='dev'
   }
   stages {
     stage('cleanup') {
