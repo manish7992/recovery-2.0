@@ -1,6 +1,2 @@
-FROM openjdk:8
-ENV APP_HOME=/usr/app
-WORKDIR $APP_HOME
-COPY target/*.jar app.jar
-EXPOSE 8081
-CMD ["java", "-jar", "-Dspring.profiles.active=dev", "recoveryplus.jar"]
+FROM redhat/ubi8-minimal:8.5-204
+LABEL org.opencontainers.image.source https://github.com/darinpope/jenkins-example-cosign
