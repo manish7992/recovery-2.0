@@ -12,7 +12,6 @@ pipeline {
         sh 'docker system prune -a --volumes --force'
       }
     }
-    stages {
     stage('cleanup') {
       steps {
         sh 'mvn  clean package -Dmaven.test.skip=true'
