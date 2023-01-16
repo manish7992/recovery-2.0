@@ -17,7 +17,8 @@ pipeline {
       steps {
         sh 'mvn  clean package -Dmaven.test.skip=true'
       }
-    }    
+    }
+    }
     stage('build image') {
       steps {
         sh 'docker build -t $IMAGE_NAME:recover${GIT_COMMIT} .'
@@ -87,5 +88,4 @@ pipeline {
       sh 'docker logout'
     }
   }
-}
 }
