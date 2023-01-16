@@ -1,7 +1,7 @@
 pipeline {
   agent any
   environment {
-    GITHUB_TOKEN=credentials('github-token')
+    DOCKER_PASSWORD=credentials('docker-token')
     IMAGE_NAME='manish8757/k8s'
     COSIGN_PASSWORD=credentials('cosign-password')
     COSIGN_PRIVATE_KEY=credentials('cosign-private-key')
@@ -25,7 +25,7 @@ pipeline {
     }
     stage('login to docker hub') {
       steps {
-        sh 'echo "$GITHUB_TOKEN_PSW" | docker login ghcr.io -u $GITHUB_TOKEN_USR --password-stdin'
+        sh 'echo "$GITHUB_TOKEN_PSW" | docker login -u manish8757 -p manish123@'
       }
     }
     stage('docker-scanning') {
@@ -70,11 +70,11 @@ pipeline {
                 cd test-recovery/recoveryplus
                 cat values.yaml
                 git pull 
-                sed -i " s%manish8757/rancher:${GIT_PREVIOUS_SUCCESSFUL_COMMIT}%manish8757/rancher:${GIT_COMMIT}%g" deployment.yaml
+                sed -i " s%manish8757/k8s:${GIT_PREVIOUS_SUCCESSFUL_COMMIT}%manish8757/k8s:${GIT_COMMIT}%g" values.yaml
                 terrascan scan -i helm recoveryplus -o json >> helm-chart.json
                 aws s3 cp helm-chart.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/Terrascan/helm-chart.json
                 rm helm-chart.json
-                git add deployment.yaml
+                git add values.yaml
                 git commit -m  "This is manish8757/rancher"
                 git push 
             '''
