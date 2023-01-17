@@ -31,7 +31,7 @@ pipeline {
     stage('docker-scanning') {
       steps {
         withAWS(credentials: 'aws-key', region: 'us-east-1'){
-        sh 'docker scan --login --token 51025e1f-c211-4a82-80b2-8069e5d03d62 && docker scan $IMAGE_NAME:recover${GIT_COMMIT} >> image_scan.json && aws s3 cp image_scan.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/DockerScan/image_scan.json'
+        sh 'docker scan --login --token 51025e1f-c211-4a82-80b2-8069e5d03d62 && docker scan $IMAGE_NAME:recover${GIT_COMMIT} >> image_scan.json && aws s3 cp image_scan.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/DockerScan/$(date "+%F_%H_%M_%S").json'
       }
       }
     }
