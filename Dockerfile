@@ -1,2 +1,2 @@
-FROM ubuntu
+FROM ubuntu:rolling
 CMD echo "hii"
