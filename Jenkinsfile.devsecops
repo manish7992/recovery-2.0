@@ -30,7 +30,9 @@ pipeline {
     }
     stage('docker-scanning') {
       steps {
+        withAWS(credentials: 'aws-key', region: 'us-east-1'){
         sh 'docker scan --login --token 51025e1f-c211-4a82-80b2-8069e5d03d62 && docker scan $IMAGE_NAME:recover${GIT_COMMIT} >> image_scan.json && aws s3 cp image_scan.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/DockerScan/image_scan.json'
+      }
       }
     }
     // stage('tag image') {
@@ -43,12 +45,6 @@ pipeline {
         sh 'docker push $IMAGE_NAME:recover${GIT_COMMIT}'
       }
     }
-    stage('installing terrascan') {
-      steps {
-        sh '$ curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz && tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz && sudo install terrascan /usr/local/bin && rm terrascan && terrascan '
-      }
-    }
-    
     // stage('sign the container image') {
     //   steps {
     //     sh 'cosign version'
