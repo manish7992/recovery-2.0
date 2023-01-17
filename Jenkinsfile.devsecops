@@ -48,11 +48,7 @@ pipeline {
         sh '$ curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz && tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz && sudo install terrascan /usr/local/bin && rm terrascan && terrascan '
       }
     }
-    stage('infra scan') {
-      steps {
-        sh 'docker run -it --rm -e SCAN=cis_1.5_aws -e OUTPUT=json -e FILE_NAME=aws-infra -e AWS_ACCESS_KEY_ID=AKIAXSWK5TOQCYSHNCMN -e AWS_SECRET_ACCESS_KEY=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 -e S3_BUCKET=prowler-demo-reports --name prowler manish8757/aws-infra-scan:v3 '
-      }
-    }
+    
     // stage('sign the container image') {
     //   steps {
     //     sh 'cosign version'
