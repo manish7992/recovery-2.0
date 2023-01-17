@@ -31,7 +31,7 @@ pipeline {
     stage('docker-scanning') {
       steps {
         withAWS(credentials: 'aws-key', region: 'us-east-1'){
-        sh 'docker scan --login --token 51025e1f-c211-4a82-80b2-8069e5d03d62 && docker scan $IMAGE_NAME:recover${GIT_COMMIT} >> image_scan.json && aws s3 cp image_scan.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/DockerScan/$(date "+%F_%H_%M_%S").json'
+        sh 'docker scan --login --token 51025e1f-c211-4a82-80b2-8069e5d03d62 && docker scan $IMAGE_NAME:recover${GIT_COMMIT} --severity high >> image_scan.json && aws s3 cp image_scan.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/DockerScan/$(date "+%F_%H_%M_%S").json'
       }
       }
     }
@@ -62,8 +62,6 @@ pipeline {
                 cat values.yaml
                 git pull 
                 sed -i " s%manish8757/k8s:${GIT_PREVIOUS_SUCCESSFUL_COMMIT}%manish8757/k8s:${GIT_COMMIT}%g" values.yaml
-                terrascan scan -i helm recoveryplus -o json >> helm-chart.json
-                aws s3 cp helm-chart.json s3://$S3_BUCKET/$ENV/$(date +%d_%m_%Y)/Terrascan/helm-chart.json
                 rm helm-chart.json
                 git add values.yaml
                 git commit -m  "This is manish8757/rancher"
