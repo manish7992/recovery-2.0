@@ -57,7 +57,7 @@ pipeline {
             GIT_CREDS = credentials('manish-git-cred')
             sh '''
                 echo ${GIT_PREVIOUS_SUCCESSFUL_COMMIT}
-                git clone git@github.com/manish7992/test-recovery.git
+                git clone git@github.com:manish7992/test-recovery.git
                 cd test-recovery/recoveryplus
                 cat values.yaml
                 git pull 
